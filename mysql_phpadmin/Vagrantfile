@@ -1,0 +1,47 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+  config.vm.define "localDb" do |localDb|
+    
+    localDb.vm.provider "virtualbox" do |v|
+      #v.memory = 2048
+      #v.cpus = 2
+      # vb.gui = true
+      v.customize ["modifyvm", :id, "--memory", 2048,"--vram", 12, "--cpus", 2]
+      v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/v-root", "1"]
+    end
+    
+    localDb.vm.box = "centos/7"
+    localDb.vm.hostname = "localDb"
+
+    config.vm.network "private_network", ip: "192.168.50.4"
+    config.vm.hostname = "localDb.armaandhir.local.com"
+
+    # Create a public network, which generally matched to bridged network.
+    # config.vm.network "public_network"
+    
+    localDb.vm.synced_folder '.', '/vagrant'
+
+    # Enable provisioning with a shell script. Additional provisioners such as
+    # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
+    # documentation for more information about their specific syntax and use.
+    # config.vm.provision "shell", inline: <<-SHELL
+    #   apt-get update
+    #   apt-get install -y apache2
+    # SHELL
+    localDb.vm.provision "shell", path: "resources/scripts/provision.bash"
+
+    localDb.vm.provision "start_env", type: "shell", run: "always", path: "resources/scripts/start_env.bash"
+    localDb.vm.provision "stop_env", type: "shell", run: "never", path: "resources/scripts/stop_env.bash"
+
+    # Define a Vagrant Push strategy for pushing to Atlas. Other push strategies
+    # such as FTP and Heroku are also available. See the documentation at
+    # https://docs.vagrantup.com/v2/push/atlas.html for more information.
+    # config.push.define "atlas" do |push|
+    #   push.app = "YOUR_ATLAS_USERNAME/YOUR_APPLICATION_NAME"
+    # end
+
+  end
+end
